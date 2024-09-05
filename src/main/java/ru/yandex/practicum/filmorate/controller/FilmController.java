@@ -22,13 +22,18 @@ public class FilmController {
 
     private final List<Film> films = new ArrayList<>();
     private final AtomicLong nextId = new AtomicLong(1);
+    private static final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
+    /**
+     * Adds a new film if it passes validation checks.
+     *
+     * @param film Film object
+     * @return ResponseEntity with film data or error message
+     */
     @PostMapping
     public ResponseEntity<?> addFilm(@Valid @RequestBody Film film) {
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            log.error("Film release date {} is before 1895-12-28", film.getReleaseDate());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Collections.singletonMap("error", "Release date cannot be before December 28, 1895."));
+        if (isInvalidReleaseDate(film.getReleaseDate())) {
+            return createErrorResponse("Release date cannot be before " + EARLIEST_RELEASE_DATE + ".");
         }
 
         film.setId(nextId.getAndIncrement());
@@ -37,12 +42,16 @@ public class FilmController {
         return ResponseEntity.status(HttpStatus.CREATED).body(film);
     }
 
+    /**
+     * Updates an existing film if it is found and passes validation checks.
+     *
+     * @param film Film object
+     * @return ResponseEntity with updated film data or error message
+     */
     @PutMapping
     public ResponseEntity<?> updateFilm(@Valid @RequestBody Film film) {
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            log.error("Film release date {} is before 1895-12-28", film.getReleaseDate());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Collections.singletonMap("error", "Release date cannot be before December 28, 1895."));
+        if (isInvalidReleaseDate(film.getReleaseDate())) {
+            return createErrorResponse("Release date cannot be before " + EARLIEST_RELEASE_DATE + ".");
         }
 
         for (int i = 0; i < films.size(); i++) {
@@ -55,13 +64,30 @@ public class FilmController {
 
         String errorMessage = "Film with ID " + film.getId() + " not found";
         log.error(errorMessage);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Collections.singletonMap("error", errorMessage));
+        return createErrorResponse(errorMessage, HttpStatus.NOT_FOUND);
     }
 
+    /**
+     * Retrieves a list of all films.
+     *
+     * @return List of films
+     */
     @GetMapping
     public List<Film> getAllFilms() {
         return films;
+    }
+
+    private boolean isInvalidReleaseDate(LocalDate releaseDate) {
+        return releaseDate.isBefore(EARLIEST_RELEASE_DATE);
+    }
+
+    private ResponseEntity<?> createErrorResponse(String message) {
+        return createErrorResponse(message, HttpStatus.BAD_REQUEST);
+    }
+
+    private ResponseEntity<?> createErrorResponse(String message, HttpStatus status) {
+        log.error(message);
+        return ResponseEntity.status(status).body(Collections.singletonMap("error", message));
     }
 }
 
