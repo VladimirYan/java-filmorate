@@ -9,9 +9,9 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import jakarta.validation.Valid;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Validated
 public class FilmController {
 
-    private final List<Film> films = new ArrayList<>();
+    private final List<Film> films = new CopyOnWriteArrayList<>();
     private final AtomicLong nextId = new AtomicLong(1);
     private static final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
@@ -90,6 +90,7 @@ public class FilmController {
         return ResponseEntity.status(status).body(Collections.singletonMap("error", message));
     }
 }
+
 
 
 

@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 
 import jakarta.validation.Valid;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Validated
 public class UserController {
 
-    private final List<User> users = new ArrayList<>();
+    private final List<User> users = new CopyOnWriteArrayList<>();
     private final AtomicLong nextId = new AtomicLong(1);
 
     /**
@@ -89,6 +89,7 @@ public class UserController {
         return ResponseEntity.status(status).body(Collections.singletonMap("error", message));
     }
 }
+
 
 
 
