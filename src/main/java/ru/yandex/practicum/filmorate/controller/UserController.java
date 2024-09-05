@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import jakarta.validation.Valid;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -24,20 +25,22 @@ public class UserController {
     public ResponseEntity<?> createUser(@Valid @RequestBody User user) {
         if (user.getName() == null || user.getName().isEmpty()) {
             log.error("User name cannot be empty");
-            return ResponseEntity.badRequest().body("Name cannot be empty");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("error", "Name cannot be empty"));
         }
 
         user.setId(nextId.getAndIncrement());
         users.add(user);
         log.info("User created: {}", user);
-        return ResponseEntity.ok(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
     @PutMapping
     public ResponseEntity<?> updateUser(@Valid @RequestBody User user) {
         if (user.getName() == null || user.getName().isEmpty()) {
             log.error("User name cannot be empty");
-            return ResponseEntity.badRequest().body("Name cannot be empty");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("error", "Name cannot be empty"));
         }
 
         for (int i = 0; i < users.size(); i++) {
@@ -50,7 +53,8 @@ public class UserController {
 
         String errorMessage = "User with ID " + user.getId() + " not found";
         log.error(errorMessage);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Collections.singletonMap("error", errorMessage));
     }
 
     @GetMapping

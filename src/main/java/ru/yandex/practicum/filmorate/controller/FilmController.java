@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -26,20 +27,22 @@ public class FilmController {
     public ResponseEntity<?> addFilm(@Valid @RequestBody Film film) {
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             log.error("Film release date {} is before 1895-12-28", film.getReleaseDate());
-            return ResponseEntity.badRequest().body("Release date cannot be before December 28, 1895.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("error", "Release date cannot be before December 28, 1895."));
         }
 
         film.setId(nextId.getAndIncrement());
         films.add(film);
         log.info("Film added: {}", film);
-        return ResponseEntity.ok(film);
+        return ResponseEntity.status(HttpStatus.CREATED).body(film);
     }
 
     @PutMapping
     public ResponseEntity<?> updateFilm(@Valid @RequestBody Film film) {
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             log.error("Film release date {} is before 1895-12-28", film.getReleaseDate());
-            return ResponseEntity.badRequest().body("Release date cannot be before December 28, 1895.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("error", "Release date cannot be before December 28, 1895."));
         }
 
         for (int i = 0; i < films.size(); i++) {
@@ -49,9 +52,11 @@ public class FilmController {
                 return ResponseEntity.ok(film);
             }
         }
+
         String errorMessage = "Film with ID " + film.getId() + " not found";
         log.error(errorMessage);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Collections.singletonMap("error", errorMessage));
     }
 
     @GetMapping
@@ -59,6 +64,7 @@ public class FilmController {
         return films;
     }
 }
+
 
 
 
