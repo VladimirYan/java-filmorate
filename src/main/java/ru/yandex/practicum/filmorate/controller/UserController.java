@@ -18,13 +18,15 @@ import java.util.concurrent.atomic.AtomicLong;
 @RequestMapping("/users")
 @Validated
 public class UserController {
+
     private final List<User> users = new ArrayList<>();
     private final AtomicLong nextId = new AtomicLong(1);
 
     @PostMapping
     public ResponseEntity<?> createUser(@Valid @RequestBody User user) {
-        if (user.getName() == null || user.getName().isEmpty()) {
-            log.error("User name cannot be empty");
+        user.validate();
+        if (user.getName() == null || user.getName().isBlank()) {
+            log.error("User name is empty");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Collections.singletonMap("error", "Name cannot be empty"));
         }
@@ -37,14 +39,9 @@ public class UserController {
 
     @PutMapping
     public ResponseEntity<?> updateUser(@Valid @RequestBody User user) {
-        if (user.getName() == null || user.getName().isEmpty()) {
-            log.error("User name cannot be empty");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Collections.singletonMap("error", "Name cannot be empty"));
-        }
-
         for (int i = 0; i < users.size(); i++) {
             if (users.get(i).getId().equals(user.getId())) {
+                user.validate();
                 users.set(i, user);
                 log.info("User updated: {}", user);
                 return ResponseEntity.ok(user);
@@ -62,6 +59,7 @@ public class UserController {
         return users;
     }
 }
+
 
 
 
