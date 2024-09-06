@@ -8,8 +8,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-
 import jakarta.validation.Valid;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -53,6 +53,16 @@ public class UserController {
         return userService.getAllUsers();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+        try {
+            User user = userService.getUserById(id);
+            return ResponseEntity.ok(user);
+        } catch (IllegalArgumentException e) {
+            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
     @PutMapping("/{id}/friends/{friendId}")
     public ResponseEntity<?> addFriend(@PathVariable Long id, @PathVariable Long friendId) {
         try {
@@ -70,6 +80,16 @@ public class UserController {
             userService.removeFriend(id, friendId);
             log.info("User {} removed as friend from user {}", friendId, id);
             return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/{id}/friends")
+    public ResponseEntity<?> getFriends(@PathVariable Long id) {
+        try {
+            List<User> friends = userService.getFriends(id);
+            return ResponseEntity.ok(friends);
         } catch (IllegalArgumentException e) {
             return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
         }
@@ -94,6 +114,7 @@ public class UserController {
         return ResponseEntity.status(status).body(Collections.singletonMap("error", message));
     }
 }
+
 
 
 

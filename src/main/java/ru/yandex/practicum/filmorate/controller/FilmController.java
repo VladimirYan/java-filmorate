@@ -53,6 +53,17 @@ public class FilmController {
         return filmService.getAllFilms();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getFilmById(@PathVariable Long id) {
+        try {
+            Film film = filmService.getFilmById(id);
+            log.info("Film found: {}", film);
+            return ResponseEntity.ok(film);
+        } catch (IllegalArgumentException e) {
+            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
     @PutMapping("/{id}/like/{userId}")
     public ResponseEntity<?> addLike(@PathVariable Long id, @PathVariable Long userId) {
         try {

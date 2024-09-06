@@ -32,6 +32,17 @@ public class UserService {
         return userStorage.getAllUsers();
     }
 
+    public User getUserById(Long id) {
+        return userFinderService.findUser(id);
+    }
+
+    public List<User> getFriends(Long userId) {
+        User user = userFinderService.findUser(userId);
+        return user.getFriends().stream()
+                .map(userFinderService::findUser)
+                .collect(Collectors.toList());
+    }
+
     public void addFriend(Long userId, Long friendId) {
         User user = userFinderService.findUser(userId);
         User friend = userFinderService.findUser(friendId);
@@ -55,6 +66,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 }
+
 
 
 

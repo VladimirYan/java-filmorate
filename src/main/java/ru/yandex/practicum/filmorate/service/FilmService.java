@@ -32,6 +32,10 @@ public class FilmService {
         return filmStorage.getAllFilms();
     }
 
+    public Film getFilmById(Long filmId) {
+        return findFilm(filmId);
+    }
+
     public void addLike(Long filmId, Long userId) {
         Film film = findFilm(filmId);
         userFinderService.findUser(userId);
@@ -58,6 +62,7 @@ public class FilmService {
                 .orElseThrow(() -> new IllegalArgumentException("Film not found: " + filmId));
     }
 }
+
 
 
 
