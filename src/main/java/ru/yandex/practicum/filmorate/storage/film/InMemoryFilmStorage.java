@@ -5,6 +5,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -20,7 +21,6 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (isInvalidReleaseDate(film.getReleaseDate())) {
             throw new IllegalArgumentException("Release date cannot be before " + EARLIEST_RELEASE_DATE + ".");
         }
-
         film.setId(nextId.getAndIncrement());
         films.add(film);
         return film;
@@ -32,14 +32,16 @@ public class InMemoryFilmStorage implements FilmStorage {
             throw new IllegalArgumentException("Release date cannot be before " + EARLIEST_RELEASE_DATE + ".");
         }
 
-        for (int i = 0; i < films.size(); i++) {
-            if (films.get(i).getId().equals(film.getId())) {
-                films.set(i, film);
-                return film;
-            }
-        }
+        Optional<Film> existingFilmOpt = films.stream()
+                .filter(f -> f.getId().equals(film.getId()))
+                .findFirst();
 
-        throw new IllegalArgumentException("Film with ID " + film.getId() + " not found");
+        Film existingFilm = existingFilmOpt.orElseThrow(() ->
+                new IllegalArgumentException("Film with ID " + film.getId() + " not found"));
+
+        int index = films.indexOf(existingFilm);
+        films.set(index, film);
+        return film;
     }
 
     @Override
@@ -47,7 +49,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         return films;
     }
 
-    private boolean isInvalidReleaseDate(LocalDate releaseDate) {
+    private static boolean isInvalidReleaseDate(LocalDate releaseDate) {
         return releaseDate.isBefore(EARLIEST_RELEASE_DATE);
     }
 }

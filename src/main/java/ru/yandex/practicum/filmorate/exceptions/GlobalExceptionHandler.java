@@ -25,12 +25,6 @@ public class GlobalExceptionHandler {
     private static final String NOT_FOUND_ERROR_LOG = "Not found error: {}";
     private static final String UNEXPECTED_ERROR_LOG = "Unexpected error occurred: ";
 
-    /**
-     * Handles validation exceptions thrown during the request binding process.
-     *
-     * @param ex MethodArgumentNotValidException
-     * @return ResponseEntity with validation errors and BAD_REQUEST status
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -44,36 +38,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, STATUS_BAD_REQUEST);
     }
 
-    /**
-     * Handles custom validation exceptions.
-     *
-     * @param ex ValidationException
-     * @return ResponseEntity with validation error message and BAD_REQUEST status
-     */
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<String> handleCustomValidationExceptions(ValidationException ex) {
         log.error(VALIDATION_ERROR_LOG, "validation", ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), STATUS_BAD_REQUEST);
     }
 
-    /**
-     * Handles not found exceptions.
-     *
-     * @param ex NoSuchElementException
-     * @return ResponseEntity with not found error message and NOT_FOUND status
-     */
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<String> handleNotFoundExceptions(NoSuchElementException ex) {
         log.error(NOT_FOUND_ERROR_LOG, ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), STATUS_NOT_FOUND);
     }
 
-    /**
-     * Handles all other exceptions that may occur during the application's runtime.
-     *
-     * @param ex Exception
-     * @return ResponseEntity with exception message and INTERNAL_SERVER_ERROR status
-     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleAllExceptions(Exception ex) {
         log.error(UNEXPECTED_ERROR_LOG, ex);

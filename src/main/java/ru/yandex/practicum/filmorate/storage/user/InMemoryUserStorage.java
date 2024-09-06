@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.Optional;
 
 @Component
 public class InMemoryUserStorage implements UserStorage {
@@ -26,17 +27,21 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        for (int i = 0; i < users.size(); i++) {
-            if (users.get(i).getId().equals(user.getId())) {
-                user.validate();
-                if (isInvalidName(user.getName())) {
-                    throw new IllegalArgumentException("Name cannot be empty");
-                }
-                users.set(i, user);
-                return user;
-            }
+        Optional<User> existingUserOpt = users.stream()
+                .filter(u -> u.getId().equals(user.getId()))
+                .findFirst();
+
+        User existingUser = existingUserOpt.orElseThrow(() ->
+                new IllegalArgumentException("User with ID " + user.getId() + " not found"));
+
+        user.validate();
+        if (isInvalidName(user.getName())) {
+            throw new IllegalArgumentException("Name cannot be empty");
         }
-        throw new IllegalArgumentException("User with ID " + user.getId() + " not found");
+
+        int index = users.indexOf(existingUser);
+        users.set(index, user);
+        return user;
     }
 
     @Override
@@ -44,7 +49,7 @@ public class InMemoryUserStorage implements UserStorage {
         return users;
     }
 
-    private boolean isInvalidName(String name) {
+    private static boolean isInvalidName(String name) {
         return name == null || name.isBlank();
     }
 }
