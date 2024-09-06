@@ -7,6 +7,8 @@ import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Slf4j
@@ -24,6 +26,8 @@ public class User {
 
     @PastOrPresent(message = "Birthday cannot be in the future.")
     private LocalDate birthday;
+
+    private Set<Long> friends = new HashSet<>();
 
     public void validate() {
         if (name == null || name.isBlank()) {

@@ -1,12 +1,13 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import jakarta.validation.Valid;
 import java.util.Collections;
@@ -18,16 +19,17 @@ import java.util.List;
 @Validated
 public class UserController {
 
-    private final UserStorage userStorage;
+    private final UserService userService;
 
-    public UserController(UserStorage userStorage) {
-        this.userStorage = userStorage;
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @PostMapping
     public ResponseEntity<?> createUser(@Valid @RequestBody User user) {
         try {
-            User createdUser = userStorage.createUser(user);
+            User createdUser = userService.createUser(user);
             log.info("User created: {}", createdUser);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
         } catch (IllegalArgumentException e) {
@@ -38,7 +40,7 @@ public class UserController {
     @PutMapping
     public ResponseEntity<?> updateUser(@Valid @RequestBody User user) {
         try {
-            User updatedUser = userStorage.updateUser(user);
+            User updatedUser = userService.updateUser(user);
             log.info("User updated: {}", updatedUser);
             return ResponseEntity.ok(updatedUser);
         } catch (IllegalArgumentException e) {
@@ -47,9 +49,40 @@ public class UserController {
     }
 
     @GetMapping
-
     public List<User> getAllUsers() {
-        return userStorage.getAllUsers();
+        return userService.getAllUsers();
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public ResponseEntity<?> addFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        try {
+            userService.addFriend(id, friendId);
+            log.info("User {} added as friend to user {}", friendId, id);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public ResponseEntity<?> removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        try {
+            userService.removeFriend(id, friendId);
+            log.info("User {} removed as friend from user {}", friendId, id);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public ResponseEntity<?> getMutualFriends(@PathVariable Long id, @PathVariable Long otherId) {
+        try {
+            List<User> mutualFriends = userService.getMutualFriends(id, otherId);
+            return ResponseEntity.ok(mutualFriends);
+        } catch (IllegalArgumentException e) {
+            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
     }
 
     private ResponseEntity<?> createErrorResponse(String message) {
@@ -61,6 +94,9 @@ public class UserController {
         return ResponseEntity.status(status).body(Collections.singletonMap("error", message));
     }
 }
+
+
+
 
 
 

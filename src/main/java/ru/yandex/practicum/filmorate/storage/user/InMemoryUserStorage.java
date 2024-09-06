@@ -19,7 +19,6 @@ public class InMemoryUserStorage implements UserStorage {
         if (isInvalidName(user.getName())) {
             throw new IllegalArgumentException("Name cannot be empty");
         }
-
         user.setId(nextId.getAndIncrement());
         users.add(user);
         return user;
@@ -33,12 +32,10 @@ public class InMemoryUserStorage implements UserStorage {
                 if (isInvalidName(user.getName())) {
                     throw new IllegalArgumentException("Name cannot be empty");
                 }
-
                 users.set(i, user);
                 return user;
             }
         }
-
         throw new IllegalArgumentException("User with ID " + user.getId() + " not found");
     }
 
@@ -51,4 +48,6 @@ public class InMemoryUserStorage implements UserStorage {
         return name == null || name.isBlank();
     }
 }
+
+
 

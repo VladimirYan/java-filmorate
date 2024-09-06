@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Slf4j
@@ -23,6 +25,8 @@ public class Film {
 
     @Positive(message = "Duration must be a positive number.")
     private int duration;
+
+    private Set<Long> likes = new HashSet<>();
 
     public void validate() {
         LocalDate earliestReleaseDate = LocalDate.of(1895, 12, 28);
