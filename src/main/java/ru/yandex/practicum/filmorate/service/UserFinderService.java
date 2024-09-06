@@ -16,9 +16,7 @@ public class UserFinderService {
     }
 
     public User findUser(Long userId) {
-        return userStorage.getAllUsers().stream()
-                .filter(user -> user.getId().equals(userId))
-                .findFirst()
+        return userStorage.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
     }
 }

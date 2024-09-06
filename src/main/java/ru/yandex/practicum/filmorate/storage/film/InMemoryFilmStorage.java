@@ -7,12 +7,15 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
 
     private final List<Film> films = new CopyOnWriteArrayList<>();
+    private final Map<Long, Film> filmMap = new ConcurrentHashMap<>();
     private final AtomicLong nextId = new AtomicLong(1);
     private static final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
@@ -23,6 +26,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
         film.setId(nextId.getAndIncrement());
         films.add(film);
+        filmMap.put(film.getId(), film);
         return film;
     }
 
@@ -32,15 +36,13 @@ public class InMemoryFilmStorage implements FilmStorage {
             throw new IllegalArgumentException("Release date cannot be before " + EARLIEST_RELEASE_DATE + ".");
         }
 
-        Optional<Film> existingFilmOpt = films.stream()
-                .filter(f -> f.getId().equals(film.getId()))
-                .findFirst();
+        if (!filmMap.containsKey(film.getId())) {
+            throw new IllegalArgumentException("Film with ID " + film.getId() + " not found");
+        }
 
-        Film existingFilm = existingFilmOpt.orElseThrow(() ->
-                new IllegalArgumentException("Film with ID " + film.getId() + " not found"));
-
-        int index = films.indexOf(existingFilm);
+        int index = films.indexOf(filmMap.get(film.getId()));
         films.set(index, film);
+        filmMap.put(film.getId(), film);
         return film;
     }
 
@@ -49,9 +51,15 @@ public class InMemoryFilmStorage implements FilmStorage {
         return films;
     }
 
+    @Override
+    public Optional<Film> findById(Long id) {
+        return Optional.ofNullable(filmMap.get(id));
+    }
+
     private static boolean isInvalidReleaseDate(LocalDate releaseDate) {
         return releaseDate.isBefore(EARLIEST_RELEASE_DATE);
     }
 }
+
 
 

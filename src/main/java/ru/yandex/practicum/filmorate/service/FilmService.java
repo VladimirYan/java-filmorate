@@ -47,7 +47,6 @@ public class FilmService {
         userFinderService.findUser(userId);
         film.getLikes().remove(userId);
     }
-
     public List<Film> getPopularFilms(int limit) {
         return filmStorage.getAllFilms().stream()
                 .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
@@ -56,12 +55,11 @@ public class FilmService {
     }
 
     private Film findFilm(Long filmId) {
-        return filmStorage.getAllFilms().stream()
-                .filter(film -> film.getId().equals(filmId))
-                .findFirst()
+        return filmStorage.findById(filmId)
                 .orElseThrow(() -> new IllegalArgumentException("Film not found: " + filmId));
     }
 }
+
 
 
 

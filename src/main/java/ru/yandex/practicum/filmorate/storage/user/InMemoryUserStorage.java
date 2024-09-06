@@ -49,10 +49,18 @@ public class InMemoryUserStorage implements UserStorage {
         return users;
     }
 
+    @Override
+    public Optional<User> findById(Long id) {
+        return users.stream()
+                .filter(user -> user.getId().equals(id))
+                .findFirst();
+    }
+
     private static boolean isInvalidName(String name) {
         return name == null || name.isBlank();
     }
 }
+
 
 
 
