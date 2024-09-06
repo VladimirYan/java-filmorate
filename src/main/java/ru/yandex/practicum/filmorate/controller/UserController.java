@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 import jakarta.validation.Valid;
 
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -26,17 +27,25 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
-        User createdUser = userService.createUser(user);
-        log.info("User created: {}", createdUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+    public ResponseEntity<?> createUser(@Valid @RequestBody User user) {
+        try {
+            User createdUser = userService.createUser(user);
+            log.info("User created: {}", createdUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+        } catch (IllegalArgumentException e) {
+            return createErrorResponse(e.getMessage());
+        }
     }
 
     @PutMapping
-    public ResponseEntity<User> updateUser(@Valid @RequestBody User user) {
-        User updatedUser = userService.updateUser(user);
-        log.info("User updated: {}", updatedUser);
-        return ResponseEntity.ok(updatedUser);
+    public ResponseEntity<?> updateUser(@Valid @RequestBody User user) {
+        try {
+            User updatedUser = userService.updateUser(user);
+            log.info("User updated: {}", updatedUser);
+            return ResponseEntity.ok(updatedUser);
+        } catch (IllegalArgumentException e) {
+            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping
@@ -45,35 +54,64 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        User user = userService.getUserById(id);
-        return ResponseEntity.ok(user);
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+        try {
+            User user = userService.getUserById(id);
+            return ResponseEntity.ok(user);
+        } catch (IllegalArgumentException e) {
+            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public ResponseEntity<Void> addFriend(@PathVariable Long id, @PathVariable Long friendId) {
-        userService.addFriend(id, friendId);
-        log.info("User {} added as friend to user {}", friendId, id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> addFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        try {
+            userService.addFriend(id, friendId);
+            log.info("User {} added as friend to user {}", friendId, id);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public ResponseEntity<Void> removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
-        userService.removeFriend(id, friendId);
-        log.info("User {} removed as friend from user {}", friendId, id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        try {
+            userService.removeFriend(id, friendId);
+            log.info("User {} removed as friend from user {}", friendId, id);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping("/{id}/friends")
-    public ResponseEntity<List<User>> getFriends(@PathVariable Long id) {
-        List<User> friends = userService.getFriends(id);
-        return ResponseEntity.ok(friends);
+    public ResponseEntity<?> getFriends(@PathVariable Long id) {
+        try {
+            List<User> friends = userService.getFriends(id);
+            return ResponseEntity.ok(friends);
+        } catch (IllegalArgumentException e) {
+            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public ResponseEntity<List<User>> getMutualFriends(@PathVariable Long id, @PathVariable Long otherId) {
-        List<User> mutualFriends = userService.getMutualFriends(id, otherId);
-        return ResponseEntity.ok(mutualFriends);
+    public ResponseEntity<?> getMutualFriends(@PathVariable Long id, @PathVariable Long otherId) {
+        try {
+            List<User> mutualFriends = userService.getMutualFriends(id, otherId);
+            return ResponseEntity.ok(mutualFriends);
+        } catch (IllegalArgumentException e) {
+            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    private ResponseEntity<?> createErrorResponse(String message) {
+        return createErrorResponse(message, HttpStatus.BAD_REQUEST);
+    }
+
+    private ResponseEntity<?> createErrorResponse(String message, HttpStatus status) {
+        log.error(message);
+        return ResponseEntity.status(status).body(Collections.singletonMap("error", message));
     }
 }
 
