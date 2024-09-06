@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
@@ -22,7 +23,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Film addFilm(Film film) {
         if (isInvalidReleaseDate(film.getReleaseDate())) {
-            throw new IllegalArgumentException("Release date cannot be before " + EARLIEST_RELEASE_DATE + ".");
+            throw new ValidationException("Release date cannot be before " + EARLIEST_RELEASE_DATE + ".");
         }
         film.setId(nextId.getAndIncrement());
         films.add(film);
@@ -33,7 +34,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Film updateFilm(Film film) {
         if (isInvalidReleaseDate(film.getReleaseDate())) {
-            throw new IllegalArgumentException("Release date cannot be before " + EARLIEST_RELEASE_DATE + ".");
+            throw new ValidationException("Release date cannot be before " + EARLIEST_RELEASE_DATE + ".");
         }
 
         if (!filmMap.containsKey(film.getId())) {
