@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -39,23 +40,34 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<String> handleCustomValidationExceptions(ValidationException ex) {
+    public ResponseEntity<Map<String, String>> handleCustomValidationExceptions(ValidationException ex) {
         log.error(VALIDATION_ERROR_LOG, "validation", ex.getMessage());
-        return new ResponseEntity<>(ex.getMessage(), STATUS_BAD_REQUEST);
+        Map<String, String> errorResponse = Collections.singletonMap("error", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, STATUS_BAD_REQUEST);
     }
 
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<String> handleNotFoundExceptions(NoSuchElementException ex) {
+    public ResponseEntity<Map<String, String>> handleNotFoundExceptions(NoSuchElementException ex) {
         log.error(NOT_FOUND_ERROR_LOG, ex.getMessage());
-        return new ResponseEntity<>(ex.getMessage(), STATUS_NOT_FOUND);
+        Map<String, String> errorResponse = Collections.singletonMap("error", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, STATUS_NOT_FOUND);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.error("Illegal argument error: {}", ex.getMessage());
+        Map<String, String> errorResponse = Collections.singletonMap("error", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, STATUS_NOT_FOUND);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleAllExceptions(Exception ex) {
+    public ResponseEntity<Map<String, String>> handleAllExceptions(Exception ex) {
         log.error(UNEXPECTED_ERROR_LOG, ex);
-        return new ResponseEntity<>(ex.getMessage(), STATUS_INTERNAL_SERVER_ERROR);
+        Map<String, String> errorResponse = Collections.singletonMap("error", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, STATUS_INTERNAL_SERVER_ERROR);
     }
 }
+
 
 
 
