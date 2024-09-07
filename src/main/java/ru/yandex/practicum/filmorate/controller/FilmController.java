@@ -1,95 +1,77 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import jakarta.validation.Valid;
-import java.time.LocalDate;
-import java.util.Collections;
+
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @RestController
 @RequestMapping("/films")
 @Validated
+@RequiredArgsConstructor
 public class FilmController {
 
-    private final List<Film> films = new CopyOnWriteArrayList<>();
-    private final AtomicLong nextId = new AtomicLong(1);
-    private static final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
+    private final FilmService filmService;
 
-    /**
-     * Adds a new film if it passes validation checks.
-     *
-     * @param film Film object
-     * @return ResponseEntity with film data or error message
-     */
     @PostMapping
-    public ResponseEntity<?> addFilm(@Valid @RequestBody Film film) {
-        if (isInvalidReleaseDate(film.getReleaseDate())) {
-            return createErrorResponse("Release date cannot be before " + EARLIEST_RELEASE_DATE + ".");
-        }
-
-        film.setId(nextId.getAndIncrement());
-        films.add(film);
-        log.info("Film added: {}", film);
-        return ResponseEntity.status(HttpStatus.CREATED).body(film);
+    public ResponseEntity<Film> addFilm(@Valid @RequestBody Film film) {
+        Film addedFilm = filmService.addFilm(film);
+        log.info("Film added: {}", addedFilm);
+        return ResponseEntity.status(HttpStatus.CREATED).body(addedFilm);
     }
 
-    /**
-     * Updates an existing film if it is found and passes validation checks.
-     *
-     * @param film Film object
-     * @return ResponseEntity with updated film data or error message
-     */
     @PutMapping
-    public ResponseEntity<?> updateFilm(@Valid @RequestBody Film film) {
-        if (isInvalidReleaseDate(film.getReleaseDate())) {
-            return createErrorResponse("Release date cannot be before " + EARLIEST_RELEASE_DATE + ".");
-        }
-
-        for (int i = 0; i < films.size(); i++) {
-            if (films.get(i).getId().equals(film.getId())) {
-                films.set(i, film);
-                log.info("Film updated: {}", film);
-                return ResponseEntity.ok(film);
-            }
-        }
-
-        String errorMessage = "Film with ID " + film.getId() + " not found";
-        log.error(errorMessage);
-        return createErrorResponse(errorMessage, HttpStatus.NOT_FOUND);
+    public ResponseEntity<Film> updateFilm(@Valid @RequestBody Film film) {
+        Film updatedFilm = filmService.updateFilm(film);
+        log.info("Film updated: {}", updatedFilm);
+        return ResponseEntity.ok(updatedFilm);
     }
 
-    /**
-     * Retrieves a list of all films.
-     *
-     * @return List of films
-     */
     @GetMapping
     public List<Film> getAllFilms() {
-        return films;
+        return filmService.getAllFilms();
     }
 
-    private boolean isInvalidReleaseDate(LocalDate releaseDate) {
-        return releaseDate.isBefore(EARLIEST_RELEASE_DATE);
+    @GetMapping("/{id}")
+    public ResponseEntity<Film> getFilmById(@PathVariable Long id) {
+        Film film = filmService.getFilmById(id);
+        log.info("Film found: {}", film);
+        return ResponseEntity.ok(film);
     }
 
-    private ResponseEntity<?> createErrorResponse(String message) {
-        return createErrorResponse(message, HttpStatus.BAD_REQUEST);
+    @PutMapping("/{id}/like/{userId}")
+    public ResponseEntity<Void> addLike(@PathVariable Long id, @PathVariable Long userId) {
+        filmService.addLike(id, userId);
+        log.info("User {} liked film {}", userId, id);
+        return ResponseEntity.ok().build();
     }
 
-    private ResponseEntity<?> createErrorResponse(String message, HttpStatus status) {
-        log.error(message);
-        return ResponseEntity.status(status).body(Collections.singletonMap("error", message));
+    @DeleteMapping("/{id}/like/{userId}")
+    public ResponseEntity<Void> removeLike(@PathVariable Long id, @PathVariable Long userId) {
+        filmService.removeLike(id, userId);
+        log.info("User {} removed like from film {}", userId, id);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") int limit) {
+        return filmService.getPopularFilms(limit);
     }
 }
+
+
+
+
+
 
 
 
